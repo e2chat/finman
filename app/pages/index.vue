@@ -115,12 +115,16 @@ const typeLabel: Record<FinanceItem['type'], string> = {
             leave-to-class="opacity-0 scale-95"
           >
             <div v-if="showMenu" class="absolute right-0 mt-2 w-48 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 z-20">
-              <button @click="exportData" class="cursor-pointer w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2">
-                <span>⬇</span>
+              <button @click="exportData" class="cursor-pointer w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m0 0l-4-4m4 4l4-4"/>
+                </svg>
                 <span>Export Backup</span>
               </button>
-              <button @click="importData" class="cursor-pointer w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2">
-                <span>⬆</span>
+              <button @click="importData" class="cursor-pointer w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-3">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 20V4m0 0l-4 4m4-4l4 4"/>
+                </svg>
                 <span>Import Backup</span>
               </button>
             </div>
