@@ -126,7 +126,7 @@ const typeLabel: Record<FinanceItem['type'], string> = {
             </div>
           </Transition>
         </div>
-        <button @click="goAdd" class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200">+</button>
+        <button @click="goAdd" class="cursor-pointer inline-flex items-center justify-center w-9 h-9 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200">+</button>
       </div>
     </header>
 
