@@ -3,11 +3,9 @@ import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 // Use relative path to avoid alias resolution issues in tooling
 import { useFinanceStore, type FinanceItem } from '../composables/useFinanceStore';
-import { useToast } from '../composables/useToast';
 
 const router = useRouter();
 const { items } = useFinanceStore();
-const { success, error } = useToast();
 
 const q = ref('');
 const qDebounced = ref('');
@@ -56,9 +54,8 @@ function exportData() {
     a.download = `finman-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    success('Backup exported successfully');
   } catch (e) {
-    error('Failed to export backup');
+    console.error('Failed to export backup', e);
   }
 }
 
@@ -77,12 +74,11 @@ function importData() {
         const { items: storeItems, persist } = useFinanceStore();
         storeItems.value = data.items;
         persist();
-        success(`Imported ${data.items.length} items successfully`);
       } else {
-        error('Invalid backup file format');
+        console.error('Invalid backup file format');
       }
     } catch (e) {
-      error('Failed to import backup');
+      console.error('Failed to import backup', e);
     }
   };
   input.click();

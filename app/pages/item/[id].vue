@@ -2,12 +2,10 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useFinanceStore, type FinanceItem } from '../../composables/useFinanceStore';
-import { useToast } from '../../composables/useToast';
 
 const route = useRoute();
 const router = useRouter();
 const { getById, upsert, remove } = useFinanceStore();
-const { success } = useToast();
 
 const id = String(route.params.id ?? '');
 const item = computed(() => getById(id));
@@ -42,7 +40,6 @@ function applyDelta(sign: 1 | -1) {
     id: i.id,
     currentAmount: Math.max(0, i.currentAmount + change),
   });
-  success(sign === 1 ? 'Amount added' : 'Amount subtracted');
   delta.value = null;
 }
 
@@ -53,7 +50,6 @@ function setAmount() {
     id: i.id,
     currentAmount: Math.max(0, Number(delta.value ?? 0)),
   });
-  success('Amount set');
   delta.value = null;
 }
 
@@ -66,14 +62,12 @@ function saveEdit() {
     targetAmount: Number(editTargetAmount.value ?? 0),
     currentAmount: Number(editCurrentAmount.value ?? 0),
   });
-  success('Item updated successfully');
 }
 
 function confirmDelete() {
   const i = item.value;
   if (!i) return;
   remove(i.id);
-  success('Item deleted');
   router.push('/');
 }
 
