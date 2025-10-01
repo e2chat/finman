@@ -5,7 +5,10 @@ import { useRouter } from 'vue-router';
 import { useFinanceStore, type FinanceItem } from '../composables/useFinanceStore';
 
 const router = useRouter();
+
 const { items } = useFinanceStore();
+
+useMeta({ title: 'Finman' })
 
 const q = ref('');
 const qDebounced = ref('');

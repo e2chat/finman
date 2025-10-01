@@ -4,7 +4,10 @@ import { useRouter } from 'vue-router';
 import { useFinanceStore, type FinanceType } from '../composables/useFinanceStore';
 
 const router = useRouter();
+
 const { upsert } = useFinanceStore();
+
+useMeta({ title: 'Add Item - Finman' })
 
 const type = ref<FinanceType>('savings');
 const name = ref('');
