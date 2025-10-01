@@ -2,9 +2,11 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useFinanceStore, type FinanceType } from '../composables/useFinanceStore';
+import { useToast } from '../composables/useToast';
 
 const router = useRouter();
 const { upsert } = useFinanceStore();
+const { success } = useToast();
 
 const type = ref<FinanceType>('savings');
 const name = ref('');
@@ -18,6 +20,7 @@ function save() {
     targetAmount: Number(targetAmount.value ?? 0),
     currentAmount: Number(currentAmount.value ?? 0),
   });
+  success('Item created successfully');
   router.push('/');
 }
 </script>

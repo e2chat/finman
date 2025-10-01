@@ -2,10 +2,12 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useFinanceStore, type FinanceItem } from '../../composables/useFinanceStore';
+import { useToast } from '../../composables/useToast';
 
 const route = useRoute();
 const router = useRouter();
 const { getById, upsert, remove } = useFinanceStore();
+const { success } = useToast();
 
 const id = String(route.params.id ?? '');
 const item = computed(() => getById(id));
@@ -40,6 +42,18 @@ function applyDelta(sign: 1 | -1) {
     id: i.id,
     currentAmount: Math.max(0, i.currentAmount + change),
   });
+  success(sign === 1 ? 'Amount added' : 'Amount subtracted');
+  delta.value = null;
+}
+
+function setAmount() {
+  const i = item.value;
+  if (!i) return;
+  upsert({
+    id: i.id,
+    currentAmount: Math.max(0, Number(delta.value ?? 0)),
+  });
+  success('Amount set');
   delta.value = null;
 }
 
@@ -52,12 +66,14 @@ function saveEdit() {
     targetAmount: Number(editTargetAmount.value ?? 0),
     currentAmount: Number(editCurrentAmount.value ?? 0),
   });
+  success('Item updated successfully');
 }
 
 function confirmDelete() {
   const i = item.value;
   if (!i) return;
   remove(i.id);
+  success('Item deleted');
   router.push('/');
 }
 
@@ -79,18 +95,21 @@ const typeLabel: Record<FinanceItem['type'], string> = {
     </header>
 
     <main class="mx-auto max-w-2xl px-4 py-6" v-if="item">
-      <div class="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm">
+      <div class="rounded-2xl border bg-white dark:bg-neutral-800 p-4 shadow-sm" :class="pct(item) >= 100 ? 'border-green-500 dark:border-green-600' : 'border-neutral-200 dark:border-neutral-700'">
         <div class="flex items-start justify-between">
           <div class="font-medium text-neutral-800 dark:text-neutral-200">{{ typeLabel[item.type] }}</div>
-          <div class="text-sm text-neutral-500 dark:text-neutral-400">{{ pct(item) }}%</div>
+          <div class="text-sm flex items-center gap-1" :class="pct(item) >= 100 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-neutral-500 dark:text-neutral-400'">
+            <span v-if="pct(item) >= 100">✓</span>
+            <span>{{ pct(item) }}%</span>
+          </div>
         </div>
         <div class="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{{ item.name }}</div>
 
         <div class="mt-3 h-4 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-          <div class="h-full bg-neutral-800 dark:bg-neutral-300" :style="{ width: pct(item) + '%' }"></div>
+          <div class="h-full transition-all duration-300" :class="pct(item) >= 100 ? 'bg-green-600 dark:bg-green-500' : 'bg-neutral-800 dark:bg-neutral-300'" :style="{ width: pct(item) + '%' }"></div>
         </div>
         <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-          {{ Intl.NumberFormat().format(item.currentAmount) }} / {{ Intl.NumberFormat().format(item.targetAmount) }}
+          {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount) }} / {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.targetAmount) }}
         </div>
       </div>
 
@@ -117,10 +136,11 @@ const typeLabel: Record<FinanceItem['type'], string> = {
         <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100">Update amount</div>
         <div class="flex items-center gap-3">
           <input v-model.number="delta" type="number" min="0" step="0.01" class="flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 px-3 py-2" placeholder="Amount" />
+          <button @click="setAmount" class="cursor-pointer rounded-md bg-blue-600 dark:bg-blue-500 text-white px-3 py-2 hover:bg-blue-700 dark:hover:bg-blue-600">Set</button>
           <button @click="applyDelta(1)" class="cursor-pointer rounded-md bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-3 py-2 hover:bg-neutral-800 dark:hover:bg-neutral-200">Add</button>
           <button @click="applyDelta(-1)" class="cursor-pointer rounded-md bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 px-3 py-2 hover:bg-neutral-300 dark:hover:bg-neutral-600">Subtract</button>
         </div>
-        <p class="text-xs text-neutral-500 dark:text-neutral-400">Use Add to record a deposit or repayment. Use Subtract to undo or record withdrawal.</p>
+        <p class="text-xs text-neutral-500 dark:text-neutral-400">Use Set to set exact amount. Use Add to record a deposit or repayment. Use Subtract to undo or record withdrawal.</p>
       </div>
     </main>
 
