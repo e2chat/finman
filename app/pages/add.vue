@@ -54,12 +54,12 @@ function save() {
             <input v-model.number="targetAmount" type="number" min="0" step="0.01" class="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 px-3 py-2" />
             <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-1">
               <button type="button" @click="targetAmount = (targetAmount || 0) * 0.9" class="cursor-pointer text-xs rounded bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-2 py-1 hover:bg-red-200 dark:hover:bg-red-800">-10%</button>
-              <button type="button" @click="targetAmount = (targetAmount || 0) * 0.75" class="text-xs rounded bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-2 py-1 hover:bg-red-200 dark:hover:bg-red-800">-25%</button>
-              <button type="button" @click="targetAmount = (targetAmount || 0) * 0.5" class="text-xs rounded bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-2 py-1 hover:bg-red-200 dark:hover:bg-red-800">-50%</button>
+              <button type="button" @click="targetAmount = (targetAmount || 0) * 0.75" class="cursor-pointer text-xs rounded bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-2 py-1 hover:bg-red-200 dark:hover:bg-red-800">-25%</button>
+              <button type="button" @click="targetAmount = (targetAmount || 0) * 0.5" class="cursor-pointer text-xs rounded bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-2 py-1 hover:bg-red-200 dark:hover:bg-red-800">-50%</button>
               <button type="button" @click="targetAmount = (targetAmount || 0) * 1.1" class="cursor-pointer text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">+10%</button>
-              <button type="button" @click="targetAmount = (targetAmount || 0) * 1.25" class="text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">+25%</button>
-              <button type="button" @click="targetAmount = (targetAmount || 0) * 1.5" class="text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">+50%</button>
-              <button type="button" @click="targetAmount = (targetAmount || 0) * 2" class="text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">Double</button>
+              <button type="button" @click="targetAmount = (targetAmount || 0) * 1.25" class="cursor-pointer text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">+25%</button>
+              <button type="button" @click="targetAmount = (targetAmount || 0) * 1.5" class="cursor-pointer text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">+50%</button>
+              <button type="button" @click="targetAmount = (targetAmount || 0) * 2" class="cursor-pointer text-xs rounded bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-2 py-1 hover:bg-purple-200 dark:hover:bg-purple-800">Double</button>
             </div>
             <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Quick adjustments to target (hold to apply multiple times)</p>
           </div>
@@ -68,16 +68,16 @@ function save() {
             <input v-model.number="currentAmount" type="number" min="0" step="0.01" class="w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 px-3 py-2" />
             <div class="mt-2 grid grid-cols-2 gap-1">
               <button type="button" @click="currentAmount = (targetAmount || 0) * 0.1" class="cursor-pointer text-xs rounded bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-2 py-1 hover:bg-amber-200 dark:hover:bg-amber-800">10% of Target</button>
-              <button type="button" @click="currentAmount = (targetAmount || 0) * 0.25" class="text-xs rounded bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-2 py-1 hover:bg-amber-200 dark:hover:bg-amber-800">25% of Target</button>
-              <button type="button" @click="currentAmount = (targetAmount || 0) * 0.5" class="text-xs rounded bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-2 py-1 hover:bg-amber-200 dark:hover:bg-amber-800">50% of Target</button>
-              <button type="button" @click="currentAmount = 0" class="text-xs rounded bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 px-2 py-1 hover:bg-neutral-300 dark:hover:bg-neutral-600">Reset to 0</button>
+              <button type="button" @click="currentAmount = (targetAmount || 0) * 0.25" class="cursor-pointer text-xs rounded bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-2 py-1 hover:bg-amber-200 dark:hover:bg-amber-800">25% of Target</button>
+              <button type="button" @click="currentAmount = (targetAmount || 0) * 0.5" class="cursor-pointer text-xs rounded bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-2 py-1 hover:bg-amber-200 dark:hover:bg-amber-800">50% of Target</button>
+              <button type="button" @click="currentAmount = 0" class="cursor-pointer text-xs rounded bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 px-2 py-1 hover:bg-neutral-300 dark:hover:bg-neutral-600">Reset to 0</button>
             </div>
             <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Quick presets based on target amount</p>
           </div>
         </div>
 
         <div class="pt-2">
-          <button type="submit" class="rounded-md bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-2 hover:bg-neutral-800 dark:hover:bg-neutral-200">Save</button>
+          <button type="submit" class="cursor-pointer rounded-md bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-2 hover:bg-neutral-800 dark:hover:bg-neutral-200">Save</button>
         </div>
       </form>
     </main>
