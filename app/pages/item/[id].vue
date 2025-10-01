@@ -22,7 +22,7 @@ const editCurrentAmount = ref<number | null>(null);
 const customPercentage = ref<number | null>(null);
 const previewCalculation = ref<string>('');
 const updated = ref(false);
-const isAdvancedOpen = ref(true);
+
 const currentPreview = ref<string>('');
 
 // Initialize edit fields when item loads
@@ -303,11 +303,8 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       
 
       <div class="mt-6 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm">
-  <button @click="isAdvancedOpen = !isAdvancedOpen" class="w-full text-left py-2 flex justify-between items-center border-b border-neutral-200 dark:border-neutral-700">
-    <span class="text-sm font-medium text-neutral-900 dark:text-neutral-100">Advanced Tools</span>
-    <span class="transition-transform duration-200" :class="isAdvancedOpen ? 'rotate-0' : 'rotate-180'">▼</span>
-  </button>
-  <div v-show="isAdvancedOpen" class="pt-4 space-y-3">
+  <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">Advanced Tools</div>
+  <div class="pt-4 space-y-3">
     <p class="text-xs text-neutral-500 dark:text-neutral-400">Apply changes to both target and current amounts proportionally</p>
     <div class="grid grid-cols-2 gap-2">
       <button @click="multiplyTarget(2)" class="cursor-pointer rounded-md bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100 px-3 py-2 hover:bg-indigo-200 dark:hover:bg-indigo-800 text-sm font-medium">Double Target</button>
