@@ -151,7 +151,7 @@ const typeLabel: Record<FinanceItem['type'], string> = {
           </div>
           <div class="mt-1 text-xs text-neutral-600 dark:text-neutral-400">{{ typeLabel[i.type] }}</div>
           <div class="mt-3 h-4 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-            <div class="h-full transition-all duration-300" :class="pct(i) >= 100 ? 'bg-green-400 dark:bg-green-500' : 'bg-blue-400 dark:bg-blue-500'" :style="{ width: pct(i) + '%' }"></div>
+            <div class="h-full transition-all duration-300" :class="pct(i) >= 100 ? 'bg-green-300 dark:bg-green-400' : 'bg-blue-300 dark:bg-blue-400'" :style="{ width: pct(i) + '%' }"></div>
           </div>
           <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(i.currentAmount) }} / {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(i.targetAmount) }}
