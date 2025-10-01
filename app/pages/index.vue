@@ -143,15 +143,15 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div v-for="i in filtered" :key="i.id" @click="openItem(i.id)" class="cursor-pointer rounded-2xl border bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow transition" :class="pct(i) >= 100 ? 'border-green-500 dark:border-green-600' : 'border-neutral-200 dark:border-neutral-700'">
           <div class="flex items-start justify-between">
-            <div class="font-medium text-neutral-800 dark:text-neutral-200">{{ typeLabel[i.type] }}</div>
+            <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 truncate flex-1 pr-2">{{ i.name }}</div>
             <div class="text-sm flex items-center gap-1" :class="pct(i) >= 100 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-neutral-500 dark:text-neutral-400'">
               <span v-if="pct(i) >= 100">✓</span>
               <span>{{ pct(i) }}%</span>
             </div>
           </div>
-          <div class="mt-1 text-sm text-neutral-600 dark:text-neutral-300 truncate">{{ i.name }}</div>
-          <div class="mt-3 h-4 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
-            <div class="h-full transition-all duration-300" :class="pct(i) >= 100 ? 'bg-green-600 dark:bg-green-500' : 'bg-neutral-800 dark:bg-neutral-300'" :style="{ width: pct(i) + '%' }"></div>
+          <div class="mt-1 text-xs text-neutral-600 dark:text-neutral-400">{{ typeLabel[i.type] }}</div>
+          <div class="mt-3 h-5 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden shadow-inner">
+            <div class="h-full transition-all duration-300" :class="pct(i) >= 100 ? 'bg-gradient-to-r from-green-500 to-green-600 dark:from-green-400 dark:to-green-500' : 'bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500'" :style="{ width: pct(i) + '%' }"></div>
           </div>
           <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(i.currentAmount) }} / {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(i.targetAmount) }}
