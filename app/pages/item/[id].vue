@@ -104,19 +104,6 @@ function applyPercentageToTarget(percentage: number) {
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
 }
-  const increase = i.targetAmount * (percentage / 100);
-  const newTarget = i.targetAmount + increase;
-
-  previewCalculation.value = `$${i.targetAmount.toFixed(2)} + ${percentage}% = $${newTarget.toFixed(2)}`;
-  setTimeout(() =&gt; previewCalculation.value = '', 3000);
-
-  upsert({
-    id: i.id,
-    targetAmount: newTarget,
-  });
-  updated.value = true;
-  setTimeout(() =&gt; updated.value = false, 1000);
-}
 
 function applyCustomPercentageToTarget() {
   const pct = Number(customPercentage.value ?? 0);
@@ -124,9 +111,6 @@ function applyCustomPercentageToTarget() {
   if (pct > 50) {
     if (!confirm(`This will increase your target amount by ${pct}%. Are you sure?`)) return;
   }
-  applyPercentageToTarget(pct);
-  customPercentage.value = null;
-}
   applyPercentageToTarget(pct);
   customPercentage.value = null;
 }
@@ -141,7 +125,7 @@ function addPercentageOfCurrent(percentage: number) {
   const increase = i.currentAmount * (percentage / 100);
   const newCurrent = i.currentAmount + increase;
 
-  currentPreview.value = `${i.currentAmount.toFixed(2)} + ${percentage}% = ${newCurrent.toFixed(2)}`;
+  currentPreview.value = `$${i.currentAmount.toFixed(2)} + ${percentage}% = $${newCurrent.toFixed(2)}`;
   setTimeout(() => currentPreview.value = '', 3000);
 
   upsert({
@@ -150,19 +134,6 @@ function addPercentageOfCurrent(percentage: number) {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-}
-  const increase = i.currentAmount * (percentage / 100);
-  const newCurrent = i.currentAmount + increase;
-
-  previewCalculation.value = `$${i.currentAmount.toFixed(2)} + ${percentage}% = $${newCurrent.toFixed(2)}`;
-  setTimeout(() =&gt; previewCalculation.value = '', 3000);
-
-  upsert({
-    id: i.id,
-    currentAmount: Math.max(0, newCurrent),
-  });
-  updated.value = true;
-  setTimeout(() =&gt; updated.value = false, 1000);
 }
 
 // Quick complete actions
@@ -180,13 +151,6 @@ function completeGoal() {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-}
-  upsert({
-    id: i.id,
-    currentAmount: i.targetAmount,
-  });
-  updated.value = true;
-  setTimeout(() =&gt; updated.value = false, 1000);
 }
 
 function reachHalfway() {
@@ -218,13 +182,6 @@ function multiplyTarget(multiplier: number) {
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
 }
-  upsert({
-    id: i.id,
-    targetAmount: i.targetAmount * multiplier,
-  });
-  updated.value = true;
-  setTimeout(() =&gt; updated.value = false, 1000);
-}
 
 function applyInterestToBoth(percentage: number) {
   const i = item.value;
@@ -242,17 +199,6 @@ function applyInterestToBoth(percentage: number) {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-}
-  const targetIncrease = i.targetAmount * (percentage / 100);
-  const currentIncrease = i.currentAmount * (percentage / 100);
-
-  upsert({
-    id: i.id,
-    targetAmount: i.targetAmount + targetIncrease,
-    currentAmount: i.currentAmount + currentIncrease,
-  });
-  updated.value = true;
-  setTimeout(() =&gt; updated.value = false, 1000);
 }
 
 const typeLabel: Record<FinanceItem['type'], string> = {
