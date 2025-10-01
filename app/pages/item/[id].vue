@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+
 import { useFinanceStore, type FinanceItem } from '../../composables/useFinanceStore';
 
 const route = useRoute();
@@ -14,7 +14,7 @@ const delta = ref<number | null>(null);
 
 const showDeleteModal = ref(false);
 
-useSeoMeta(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
+useHead(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
 
 // Edit form fields
 const editName = ref('');

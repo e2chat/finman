@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+
 import { useFinanceStore, type FinanceType } from '../composables/useFinanceStore';
 
 const router = useRouter();
 
 const { upsert } = useFinanceStore();
 
-useSeoMeta({ title: 'Add Item - Finman' })
+useHead({ title: 'Add Item - Finman' })
 
 const type = ref<FinanceType>('savings');
 const name = ref('');

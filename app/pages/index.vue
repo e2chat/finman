@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
+
 // Use relative path to avoid alias resolution issues in tooling
 import { useFinanceStore, type FinanceItem } from '../composables/useFinanceStore';
 
@@ -8,7 +8,7 @@ const router = useRouter();
 
 const { items } = useFinanceStore();
 
-useSeoMeta({ title: 'Finman' })
+useHead({ title: 'Finman' })
 
 const q = ref('');
 const qDebounced = ref('');
