@@ -104,8 +104,8 @@ const typeLabel: Record<FinanceItem['type'], string> = {
         <div class="flex-1 max-w-md">
           <input v-model="q" type="text" placeholder="Search" class="w-full rounded-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-500 dark:focus:ring-neutral-400" />
         </div>
-        <div class="relative">
-          <button @click="showMenu = !showMenu" class="inline-flex items-center justify-center w-9 h-9 rounded-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700">
+        <div class="relative" @click.stop>
+          <button @click="showMenu = !showMenu" class="cursor-pointer inline-flex items-center justify-center w-9 h-9 rounded-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700">
             ⋯
           </button>
           <Transition
@@ -114,12 +114,12 @@ const typeLabel: Record<FinanceItem['type'], string> = {
             enter-from-class="opacity-0 scale-95"
             leave-to-class="opacity-0 scale-95"
           >
-            <div v-if="showMenu" @click.stop class="absolute right-0 mt-2 w-48 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 z-20">
-              <button @click="exportData" class="w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2">
+            <div v-if="showMenu" class="absolute right-0 mt-2 w-48 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg py-1 z-20">
+              <button @click="exportData" class="cursor-pointer w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2">
                 <span>⬇</span>
                 <span>Export Backup</span>
               </button>
-              <button @click="importData" class="w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2">
+              <button @click="importData" class="cursor-pointer w-full text-left px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700 flex items-center gap-2">
                 <span>⬆</span>
                 <span>Import Backup</span>
               </button>
