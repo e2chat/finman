@@ -7,7 +7,7 @@ const router = useRouter();
 
 const { upsert } = useFinanceStore();
 
-useMeta({ title: 'Add Item - Finman' })
+useSeoMeta({ title: 'Add Item - Finman' })
 
 const type = ref<FinanceType>('savings');
 const name = ref('');

@@ -14,7 +14,7 @@ const delta = ref<number | null>(null);
 
 const showDeleteModal = ref(false);
 
-useMeta(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
+useSeoMeta(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
 
 // Edit form fields
 const editName = ref('');

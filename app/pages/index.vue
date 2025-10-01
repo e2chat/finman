@@ -8,7 +8,7 @@ const router = useRouter();
 
 const { items } = useFinanceStore();
 
-useMeta({ title: 'Finman' })
+useSeoMeta({ title: 'Finman' })
 
 const q = ref('');
 const qDebounced = ref('');
@@ -25,7 +25,7 @@ watch(q, (newVal) => {
 
 const filtered = computed(() => {
   const term = qDebounced.value.trim().toLowerCase();
-  let result = term ? items.value.filter(i => i.name.toLowerCase().includes(term)) : items.value;
+  let result = term ? (items.value || []).filter(i => i.name.toLowerCase().includes(term)) : (items.value || []);
 
   // Sort by newest first
   result = [...result];
