@@ -226,7 +226,7 @@ const typeLabel: Record<FinanceItem['type'], string> = {
     </header>
 
     <main class="mx-auto max-w-2xl px-4 py-6" v-if="item">
-      <div class="rounded-2xl border bg-white dark:bg-neutral-800 p-4 shadow-sm" :class="[pct(item) >= 100 ? 'border-green-500 dark:border-green-600' : 'border-neutral-200 dark:border-neutral-700', updated ? 'ring-2 ring-green-500 ring-offset-2 dark:ring-offset-neutral-900' : '']">
+      <div class="rounded-2xl border p-4 shadow-sm" :class="[pct(item) >= 100 ? 'bg-green-900/20 dark:bg-green-900/30 border-green-700 dark:border-green-600' : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700', updated ? 'ring-2 ring-green-500 ring-offset-2 dark:ring-offset-neutral-900' : '']">
         <div class="flex items-start justify-between">
           <div class="font-medium text-neutral-800 dark:text-neutral-200">{{ typeLabel[item.type] }}</div>
           <div class="text-sm flex items-center gap-1" :class="pct(item) >= 100 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-neutral-500 dark:text-neutral-400'">

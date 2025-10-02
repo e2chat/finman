@@ -27,9 +27,19 @@ const filtered = computed(() => {
   const term = qDebounced.value.trim().toLowerCase();
   let result = term ? (items.value || []).filter(i => i.name.toLowerCase().includes(term)) : (items.value || []);
 
-  // Sort by newest first
+  // Sort: incomplete items first (newest first), then completed items (newest first)
   result = [...result];
-  result.sort((a, b) => b.createdAt - a.createdAt);
+  result.sort((a, b) => {
+    const aPct = pct(a);
+    const bPct = pct(b);
+    const aComplete = aPct >= 100;
+    const bComplete = bPct >= 100;
+
+    if (aComplete !== bComplete) {
+      return aComplete ? 1 : -1;
+    }
+    return b.createdAt - a.createdAt;
+  });
 
   return result;
 });
