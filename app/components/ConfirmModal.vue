@@ -7,6 +7,7 @@ interface Props {
   message?: string;
   confirmText?: string;
   cancelText?: string;
+  variant?: 'danger' | 'primary' | 'warning' | 'success' | 'purple' | 'amber' | 'indigo' | 'rose';
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -14,7 +15,19 @@ const props = withDefaults(defineProps<Props>(), {
   message: 'Are you sure?',
   confirmText: 'Confirm',
   cancelText: 'Cancel',
+  variant: 'danger',
 });
+
+const confirmButtonClasses = {
+  danger: 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600',
+  primary: 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200',
+  warning: 'bg-amber-600 dark:bg-amber-500 text-white hover:bg-amber-700 dark:hover:bg-amber-600',
+  success: 'bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600',
+  purple: 'bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-600',
+  amber: 'bg-amber-600 dark:bg-amber-500 text-white hover:bg-amber-700 dark:hover:bg-amber-600',
+  indigo: 'bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600',
+  rose: 'bg-rose-600 dark:bg-rose-500 text-white hover:bg-rose-700 dark:hover:bg-rose-600',
+};
 
 const emit = defineEmits<{
   confirm: [];
@@ -85,7 +98,8 @@ onUnmounted(() => {
             </button>
             <button
               @click="handleConfirm"
-              class="cursor-pointer rounded-md bg-red-600 dark:bg-red-500 text-white px-4 py-2 hover:bg-red-700 dark:hover:bg-red-600 transition"
+              class="cursor-pointer rounded-md px-4 py-2 transition"
+              :class="confirmButtonClasses[variant]"
             >
               {{ confirmText }}
             </button>

@@ -14,6 +14,24 @@ const delta = ref<number | null>(null);
 
 const showDeleteModal = ref(false);
 
+// Confirmation modals state
+const showTargetPercentageModal = ref(false);
+const pendingTargetPercentage = ref(0);
+
+const showCustomPercentageModal = ref(false);
+const pendingCustomPercentage = ref(0);
+
+const showCurrentPercentageModal = ref(false);
+const pendingCurrentPercentage = ref(0);
+
+const showCompleteGoalModal = ref(false);
+
+const showMultiplyTargetModal = ref(false);
+const pendingMultiplier = ref(1);
+
+const showApplyInterestModal = ref(false);
+const pendingInterestRate = ref(0);
+
 useHead(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
 
 // Edit form fields
@@ -93,9 +111,16 @@ function applyPercentageToTarget(percentage: number) {
   if (!i) return;
   const absPct = Math.abs(percentage);
   if (absPct > 50) {
-    const action = percentage > 0 ? 'increase' : 'decrease';
-    if (!confirm(`This will ${action} your target amount by ${absPct}%. Are you sure?`)) return;
+    pendingTargetPercentage.value = percentage;
+    showTargetPercentageModal.value = true;
+    return;
   }
+  executeTargetPercentageChange(percentage);
+}
+
+function executeTargetPercentageChange(percentage: number) {
+  const i = item.value;
+  if (!i) return;
   const change = i.targetAmount * (percentage / 100);
   const newTarget = Math.max(0, i.targetAmount + change);
 
@@ -108,6 +133,7 @@ function applyPercentageToTarget(percentage: number) {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showTargetPercentageModal.value = false;
 }
 
 function applyCustomPercentageToTarget() {
@@ -115,11 +141,18 @@ function applyCustomPercentageToTarget() {
   if (pct === 0) return;
   const absPct = Math.abs(pct);
   if (absPct > 50) {
-    const action = pct > 0 ? 'increase' : 'decrease';
-    if (!confirm(`This will ${action} your target amount by ${absPct}%. Are you sure?`)) return;
+    pendingCustomPercentage.value = pct;
+    showCustomPercentageModal.value = true;
+    return;
   }
-  applyPercentageToTarget(pct);
+  executeTargetPercentageChange(pct);
   customPercentage.value = null;
+}
+
+function confirmCustomPercentage() {
+  executeTargetPercentageChange(pendingCustomPercentage.value);
+  customPercentage.value = null;
+  showCustomPercentageModal.value = false;
 }
 
 // Current amount percentage adjustments
@@ -127,8 +160,16 @@ function addPercentageOfCurrent(percentage: number) {
   const i = item.value;
   if (!i) return;
   if (percentage > 50) {
-    if (!confirm(`This will increase your current amount by ${percentage}% of current ($${ (i.currentAmount * (percentage / 100)).toFixed(2) }). Are you sure?`)) return;
+    pendingCurrentPercentage.value = percentage;
+    showCurrentPercentageModal.value = true;
+    return;
   }
+  executeCurrentPercentageChange(percentage);
+}
+
+function executeCurrentPercentageChange(percentage: number) {
+  const i = item.value;
+  if (!i) return;
   const increase = i.currentAmount * (percentage / 100);
   const newCurrent = i.currentAmount + increase;
 
@@ -141,6 +182,7 @@ function addPercentageOfCurrent(percentage: number) {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showCurrentPercentageModal.value = false;
 }
 
 // Quick complete actions
@@ -148,8 +190,15 @@ function completeGoal() {
   const i = item.value;
   if (!i) return;
   if (pct(i) < 90) {
-    if (!confirm('Complete the goal? This will set current amount to target.')) return;
+    showCompleteGoalModal.value = true;
+    return;
   }
+  executeCompleteGoal();
+}
+
+function executeCompleteGoal() {
+  const i = item.value;
+  if (!i) return;
   currentPreview.value = `Complete goal: $${i.targetAmount.toFixed(2)}`;
   setTimeout(() => currentPreview.value = '', 3000);
   upsert({
@@ -158,6 +207,7 @@ function completeGoal() {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showCompleteGoalModal.value = false;
 }
 
 function reachHalfway() {
@@ -180,22 +230,39 @@ function multiplyTarget(multiplier: number) {
   if (!i) return;
   const changePct = Math.abs(multiplier - 1) * 100;
   if (changePct > 50) {
-    if (!confirm(`This will ${multiplier > 1 ? 'increase' : 'decrease'} your target by ${changePct.toFixed(0)}%. Are you sure?`)) return;
+    pendingMultiplier.value = multiplier;
+    showMultiplyTargetModal.value = true;
+    return;
   }
+  executeMultiplyTarget(multiplier);
+}
+
+function executeMultiplyTarget(multiplier: number) {
+  const i = item.value;
+  if (!i) return;
   upsert({
     id: i.id,
     targetAmount: i.targetAmount * multiplier,
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showMultiplyTargetModal.value = false;
 }
 
 function applyInterestToBoth(percentage: number) {
   const i = item.value;
   if (!i) return;
   if (percentage > 50) {
-    if (!confirm(`This will apply ${percentage}% interest to both target and current amounts. Are you sure?`)) return;
+    pendingInterestRate.value = percentage;
+    showApplyInterestModal.value = true;
+    return;
   }
+  executeApplyInterest(percentage);
+}
+
+function executeApplyInterest(percentage: number) {
+  const i = item.value;
+  if (!i) return;
   const targetIncrease = i.targetAmount * (percentage / 100);
   const currentIncrease = i.currentAmount * (percentage / 100);
 
@@ -206,6 +273,7 @@ function applyInterestToBoth(percentage: number) {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showApplyInterestModal.value = false;
 }
 
 const typeLabel: Record<FinanceItem['type'], string> = {
@@ -338,6 +406,72 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       cancel-text="Cancel"
       @confirm="confirmDelete"
       @cancel="showDeleteModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showTargetPercentageModal"
+      variant="purple"
+      title="Adjust Target Amount"
+      :message="`This will ${pendingTargetPercentage > 0 ? 'increase' : 'decrease'} your target amount by ${Math.abs(pendingTargetPercentage)}%. Are you sure?`"
+      confirm-text="Confirm"
+      cancel-text="Cancel"
+      @confirm="executeTargetPercentageChange(pendingTargetPercentage)"
+      @cancel="showTargetPercentageModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showCustomPercentageModal"
+      variant="purple"
+      title="Adjust Target Amount"
+      :message="`This will ${pendingCustomPercentage > 0 ? 'increase' : 'decrease'} your target amount by ${Math.abs(pendingCustomPercentage)}%. Are you sure?`"
+      confirm-text="Confirm"
+      cancel-text="Cancel"
+      @confirm="confirmCustomPercentage"
+      @cancel="showCustomPercentageModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showCurrentPercentageModal"
+      variant="amber"
+      title="Increase Current Amount"
+      :message="`This will increase your current amount by ${pendingCurrentPercentage}% of current ($${item ? (item.currentAmount * (pendingCurrentPercentage / 100)).toFixed(2) : '0'}). Are you sure?`"
+      confirm-text="Confirm"
+      cancel-text="Cancel"
+      @confirm="executeCurrentPercentageChange(pendingCurrentPercentage)"
+      @cancel="showCurrentPercentageModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showCompleteGoalModal"
+      variant="success"
+      title="Complete Goal"
+      message="Complete the goal? This will set current amount to target."
+      confirm-text="Complete"
+      cancel-text="Cancel"
+      @confirm="executeCompleteGoal"
+      @cancel="showCompleteGoalModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showMultiplyTargetModal"
+      variant="indigo"
+      title="Multiply Target"
+      :message="`This will ${pendingMultiplier > 1 ? 'increase' : 'decrease'} your target by ${(Math.abs(pendingMultiplier - 1) * 100).toFixed(0)}%. Are you sure?`"
+      confirm-text="Confirm"
+      cancel-text="Cancel"
+      @confirm="executeMultiplyTarget(pendingMultiplier)"
+      @cancel="showMultiplyTargetModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showApplyInterestModal"
+      variant="rose"
+      title="Apply Interest"
+      :message="`This will apply ${pendingInterestRate}% interest to both target and current amounts. Are you sure?`"
+      confirm-text="Apply"
+      cancel-text="Cancel"
+      @confirm="executeApplyInterest(pendingInterestRate)"
+      @cancel="showApplyInterestModal = false"
     />
   </div>
 </template>
