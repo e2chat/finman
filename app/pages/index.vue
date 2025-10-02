@@ -144,7 +144,7 @@ const typeLabel: Record<FinanceItem['type'], string> = {
 
       <!-- Items Grid -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div v-for="i in filtered" :key="i.id" @click="openItem(i.id)" class="cursor-pointer rounded-2xl border bg-white dark:bg-neutral-800 p-4 shadow-sm hover:shadow transition" :class="pct(i) >= 100 ? 'border-green-500 dark:border-green-600' : 'border-neutral-200 dark:border-neutral-700'">
+        <div v-for="i in filtered" :key="i.id" @click="openItem(i.id)" class="cursor-pointer rounded-2xl border p-4 shadow-sm hover:shadow transition" :class="pct(i) >= 100 ? 'bg-green-900/20 dark:bg-green-900/30 border-green-700 dark:border-green-600 opacity-60' : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'">
           <div class="flex items-start justify-between">
             <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 truncate flex-1 pr-2">{{ i.name }}</div>
             <div class="text-sm flex items-center gap-1" :class="pct(i) >= 100 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-neutral-500 dark:text-neutral-400'">
