@@ -338,11 +338,13 @@ const typeLabel: Record<FinanceItem['type'], string> = {
         </div>
         <div class="flex items-center gap-3">
           <input v-model.number="delta" type="number" min="0" step="0.01" class="flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 px-3 py-2" placeholder="Amount" />
-          <button @click="setAmount" class="cursor-pointer rounded-md bg-blue-600 dark:bg-blue-500 text-white px-3 py-2 hover:bg-blue-700 dark:hover:bg-blue-600">Set</button>
-          <button @click="applyDelta(1)" class="cursor-pointer rounded-md bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 px-3 py-2 hover:bg-neutral-800 dark:hover:bg-neutral-200">Add</button>
+          <button @click="applyDelta(1)" class="cursor-pointer rounded-md bg-green-600 dark:bg-green-500 text-white px-6 py-2 hover:bg-green-700 dark:hover:bg-green-600 font-medium">Add</button>
           <button @click="applyDelta(-1)" class="cursor-pointer rounded-md bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 px-3 py-2 hover:bg-neutral-300 dark:hover:bg-neutral-600">Subtract</button>
         </div>
-        <p class="text-xs text-neutral-500 dark:text-neutral-400">Use Set to set exact amount. Use Add to record a deposit or repayment. Use Subtract to undo or record withdrawal.</p>
+        <div class="flex items-center gap-2 mt-2">
+          <button @click="setAmount" class="cursor-pointer rounded-md bg-neutral-600 dark:bg-neutral-500 text-white px-3 py-1.5 hover:bg-neutral-700 dark:hover:bg-neutral-400 text-sm">Set Exact Amount</button>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400">Use Add to record a deposit or repayment. Use Subtract to undo or record withdrawal.</p>
+        </div>
       </div>
 
       <div class="mt-6 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm space-y-3">
