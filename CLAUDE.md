@@ -84,3 +84,4 @@ app/
 - **No Linting/Testing Configured**: Add ESLint or Vitest if needed.
 - **SSR/SSG**: This app uses client-side localStorage; server-side rendering will show empty state until mounted.
 - **Tailwind v4**: Uses Vite plugin. Configuration is in `nuxt.config.ts` under `vite.plugins`.
+- never start the dev server

@@ -32,6 +32,15 @@ const pendingMultiplier = ref(1);
 const showApplyInterestModal = ref(false);
 const pendingInterestRate = ref(0);
 
+// Additional confirmation modals
+const showSetAmountModal = ref(false);
+const showAddDeltaModal = ref(false);
+const showSubtractDeltaModal = ref(false);
+const showReachHalfwayModal = ref(false);
+const showSaveEditModal = ref(false);
+const showAdd10CurrentModal = ref(false);
+const showAdd25CurrentModal = ref(false);
+
 useHead(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
 
 // Edit form fields
@@ -61,6 +70,14 @@ function pct(i: FinanceItem | undefined) {
 }
 
 function applyDelta(sign: 1 | -1) {
+  if (sign === 1) {
+    showAddDeltaModal.value = true;
+  } else {
+    showSubtractDeltaModal.value = true;
+  }
+}
+
+function executeApplyDelta(sign: 1 | -1) {
   const i = item.value;
   if (!i) return;
   const change = Number(delta.value ?? 0) * sign;
@@ -71,9 +88,15 @@ function applyDelta(sign: 1 | -1) {
   delta.value = null;
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showAddDeltaModal.value = false;
+  showSubtractDeltaModal.value = false;
 }
 
 function setAmount() {
+  showSetAmountModal.value = true;
+}
+
+function executeSetAmount() {
   const i = item.value;
   if (!i) return;
   upsert({
@@ -83,9 +106,14 @@ function setAmount() {
   delta.value = null;
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showSetAmountModal.value = false;
 }
 
 function saveEdit() {
+  showSaveEditModal.value = true;
+}
+
+function executeSaveEdit() {
   const i = item.value;
   if (!i) return;
   upsert({
@@ -96,6 +124,7 @@ function saveEdit() {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showSaveEditModal.value = false;
 }
 
 function confirmDelete() {
@@ -109,13 +138,8 @@ function confirmDelete() {
 function applyPercentageToTarget(percentage: number) {
   const i = item.value;
   if (!i) return;
-  const absPct = Math.abs(percentage);
-  if (absPct > 50) {
-    pendingTargetPercentage.value = percentage;
-    showTargetPercentageModal.value = true;
-    return;
-  }
-  executeTargetPercentageChange(percentage);
+  pendingTargetPercentage.value = percentage;
+  showTargetPercentageModal.value = true;
 }
 
 function executeTargetPercentageChange(percentage: number) {
@@ -139,14 +163,8 @@ function executeTargetPercentageChange(percentage: number) {
 function applyCustomPercentageToTarget() {
   const pct = Number(customPercentage.value ?? 0);
   if (pct === 0) return;
-  const absPct = Math.abs(pct);
-  if (absPct > 50) {
-    pendingCustomPercentage.value = pct;
-    showCustomPercentageModal.value = true;
-    return;
-  }
-  executeTargetPercentageChange(pct);
-  customPercentage.value = null;
+  pendingCustomPercentage.value = pct;
+  showCustomPercentageModal.value = true;
 }
 
 function confirmCustomPercentage() {
@@ -159,12 +177,14 @@ function confirmCustomPercentage() {
 function addPercentageOfCurrent(percentage: number) {
   const i = item.value;
   if (!i) return;
-  if (percentage > 50) {
-    pendingCurrentPercentage.value = percentage;
+  pendingCurrentPercentage.value = percentage;
+  if (percentage === 10) {
+    showAdd10CurrentModal.value = true;
+  } else if (percentage === 25) {
+    showAdd25CurrentModal.value = true;
+  } else {
     showCurrentPercentageModal.value = true;
-    return;
   }
-  executeCurrentPercentageChange(percentage);
 }
 
 function executeCurrentPercentageChange(percentage: number) {
@@ -183,17 +203,13 @@ function executeCurrentPercentageChange(percentage: number) {
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
   showCurrentPercentageModal.value = false;
+  showAdd10CurrentModal.value = false;
+  showAdd25CurrentModal.value = false;
 }
 
 // Quick complete actions
 function completeGoal() {
-  const i = item.value;
-  if (!i) return;
-  if (pct(i) < 90) {
-    showCompleteGoalModal.value = true;
-    return;
-  }
-  executeCompleteGoal();
+  showCompleteGoalModal.value = true;
 }
 
 function executeCompleteGoal() {
@@ -211,6 +227,10 @@ function executeCompleteGoal() {
 }
 
 function reachHalfway() {
+  showReachHalfwayModal.value = true;
+}
+
+function executeReachHalfway() {
   const i = item.value;
   if (!i) return;
   const halfway = i.targetAmount / 2;
@@ -222,19 +242,15 @@ function reachHalfway() {
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
+  showReachHalfwayModal.value = false;
 }
 
 // Advanced tools
 function multiplyTarget(multiplier: number) {
   const i = item.value;
   if (!i) return;
-  const changePct = Math.abs(multiplier - 1) * 100;
-  if (changePct > 50) {
-    pendingMultiplier.value = multiplier;
-    showMultiplyTargetModal.value = true;
-    return;
-  }
-  executeMultiplyTarget(multiplier);
+  pendingMultiplier.value = multiplier;
+  showMultiplyTargetModal.value = true;
 }
 
 function executeMultiplyTarget(multiplier: number) {
@@ -252,12 +268,8 @@ function executeMultiplyTarget(multiplier: number) {
 function applyInterestToBoth(percentage: number) {
   const i = item.value;
   if (!i) return;
-  if (percentage > 50) {
-    pendingInterestRate.value = percentage;
-    showApplyInterestModal.value = true;
-    return;
-  }
-  executeApplyInterest(percentage);
+  pendingInterestRate.value = percentage;
+  showApplyInterestModal.value = true;
 }
 
 function executeApplyInterest(percentage: number) {
@@ -472,6 +484,83 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       cancel-text="Cancel"
       @confirm="executeApplyInterest(pendingInterestRate)"
       @cancel="showApplyInterestModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showSetAmountModal"
+      variant="primary"
+      title="Set Current Amount"
+      :message="`Set current amount to ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(delta ?? 0))}?`"
+      confirm-text="Set"
+      cancel-text="Cancel"
+      @confirm="executeSetAmount"
+      @cancel="showSetAmountModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showAddDeltaModal"
+      variant="success"
+      title="Add to Current Amount"
+      :message="`Add ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(delta ?? 0))} to current amount? New amount will be ${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount + Number(delta ?? 0)) : '$0.00'}.`"
+      confirm-text="Add"
+      cancel-text="Cancel"
+      @confirm="executeApplyDelta(1)"
+      @cancel="showAddDeltaModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showSubtractDeltaModal"
+      variant="warning"
+      title="Subtract from Current Amount"
+      :message="`Subtract ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(delta ?? 0))} from current amount? New amount will be ${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.max(0, item.currentAmount - Number(delta ?? 0))) : '$0.00'}.`"
+      confirm-text="Subtract"
+      cancel-text="Cancel"
+      @confirm="executeApplyDelta(-1)"
+      @cancel="showSubtractDeltaModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showReachHalfwayModal"
+      variant="primary"
+      title="Reach Halfway Point"
+      :message="`Set current amount to halfway point (${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.targetAmount / 2) : '$0.00'})?`"
+      confirm-text="Reach Halfway"
+      cancel-text="Cancel"
+      @confirm="executeReachHalfway"
+      @cancel="showReachHalfwayModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showSaveEditModal"
+      variant="primary"
+      title="Save Changes"
+      :message="`Save changes to ${editName.trim() || 'Untitled'}? Target: ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(editTargetAmount ?? 0))}, Current: ${Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(editCurrentAmount ?? 0))}`"
+      confirm-text="Save"
+      cancel-text="Cancel"
+      @confirm="executeSaveEdit"
+      @cancel="showSaveEditModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showAdd10CurrentModal"
+      variant="amber"
+      title="Add 10% of Current"
+      :message="`Add 10% of current amount (${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 0.10) : '$0.00'})? New amount will be ${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 1.10) : '$0.00'}.`"
+      confirm-text="Add"
+      cancel-text="Cancel"
+      @confirm="executeCurrentPercentageChange(10)"
+      @cancel="showAdd10CurrentModal = false"
+    />
+
+    <ConfirmModal
+      :is-open="showAdd25CurrentModal"
+      variant="amber"
+      title="Add 25% of Current"
+      :message="`Add 25% of current amount (${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 0.25) : '$0.00'})? New amount will be ${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 1.25) : '$0.00'}.`"
+      confirm-text="Add"
+      cancel-text="Cancel"
+      @confirm="executeCurrentPercentageChange(25)"
+      @cancel="showAdd25CurrentModal = false"
     />
   </div>
 </template>
