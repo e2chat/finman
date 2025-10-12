@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 
 import { useFinanceStore, type FinanceItem } from '../../composables/useFinanceStore';
+import type { PresetOption } from '../../components/PercentageModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -12,34 +13,64 @@ const item = computed(() => getById(id));
 
 const delta = ref<number | null>(null);
 
+// Keep existing non-percentage modals
 const showDeleteModal = ref(false);
-
-// Confirmation modals state
-const showTargetPercentageModal = ref(false);
-const pendingTargetPercentage = ref(0);
-
-const showCustomPercentageModal = ref(false);
-const pendingCustomPercentage = ref(0);
-
-const showCurrentPercentageModal = ref(false);
-const pendingCurrentPercentage = ref(0);
-
-const showCompleteGoalModal = ref(false);
-
-const showMultiplyTargetModal = ref(false);
-const pendingMultiplier = ref(1);
-
-const showApplyInterestModal = ref(false);
-const pendingInterestRate = ref(0);
-
-// Additional confirmation modals
 const showSetAmountModal = ref(false);
 const showAddDeltaModal = ref(false);
 const showSubtractDeltaModal = ref(false);
-const showReachHalfwayModal = ref(false);
 const showSaveEditModal = ref(false);
-const showAdd10CurrentModal = ref(false);
-const showAdd25CurrentModal = ref(false);
+
+// New unified percentage modals
+const showTargetAdjustModal = ref(false);
+const targetAdjustInitialValue = ref<number | undefined>(undefined);
+
+const showCurrentAdjustModal = ref(false);
+const currentAdjustInitialValue = ref<number | undefined>(undefined);
+const currentAdjustMode = ref<'percentage' | 'preset'>('percentage'); // Track if it's % or preset
+
+const showMultiplyModal = ref(false);
+const multiplyInitialValue = ref<number | undefined>(undefined);
+
+const showInterestModal = ref(false);
+const interestInitialValue = ref<number | undefined>(undefined);
+
+// Preset options for modals
+const targetAdjustPresets: PresetOption[] = [
+  { label: '-50%', value: -50, isPercentage: true },
+  { label: '-25%', value: -25, isPercentage: true },
+  { label: '-10%', value: -10, isPercentage: true },
+  { label: '+10%', value: 10, isPercentage: true },
+  { label: '+25%', value: 25, isPercentage: true },
+  { label: '+50%', value: 50, isPercentage: true },
+  { label: '+100%', value: 100, isPercentage: true },
+];
+
+const currentPercentagePresets: PresetOption[] = [
+  { label: '-50%', value: -50, isPercentage: true },
+  { label: '-25%', value: -25, isPercentage: true },
+  { label: '-10%', value: -10, isPercentage: true },
+  { label: '+10%', value: 10, isPercentage: true },
+  { label: '+25%', value: 25, isPercentage: true },
+  { label: '+50%', value: 50, isPercentage: true },
+];
+
+const currentPresetOptions: PresetOption[] = [
+  { label: 'Halfway', value: 50, isPercentage: true },
+  { label: 'Complete', value: 100, isPercentage: true },
+];
+
+const multiplyPresets: PresetOption[] = [
+  { label: 'Halve (0.5×)', value: 0.5, isPercentage: false },
+  { label: '0.75×', value: 0.75, isPercentage: false },
+  { label: '1.5×', value: 1.5, isPercentage: false },
+  { label: 'Double (2×)', value: 2, isPercentage: false },
+];
+
+const interestPresets: PresetOption[] = [
+  { label: '+10%', value: 10, isPercentage: true },
+  { label: '+25%', value: 25, isPercentage: true },
+  { label: '+50%', value: 50, isPercentage: true },
+];
 
 useHead(() => ({ title: item.value?.name ? `${item.value.name} - Finman` : 'Item - Finman' }))
 
@@ -48,12 +79,8 @@ const editName = ref('');
 const editTargetAmount = ref<number | null>(null);
 const editCurrentAmount = ref<number | null>(null);
 
-// Advanced adjustments
-const customPercentage = ref<number | null>(null);
-const previewCalculation = ref<string>('');
+// UI state
 const updated = ref(false);
-
-const currentPreview = ref<string>('');
 
 // Initialize edit fields when item loads
 watch(item, (newItem) => {
@@ -134,158 +161,86 @@ function confirmDelete() {
   router.push('/');
 }
 
-// Target amount percentage adjustments
-function applyPercentageToTarget(percentage: number) {
-  const i = item.value;
-  if (!i) return;
-  pendingTargetPercentage.value = percentage;
-  showTargetPercentageModal.value = true;
+// Target amount adjustments
+function openTargetAdjustModal(initialPercentage?: number) {
+  targetAdjustInitialValue.value = initialPercentage;
+  showTargetAdjustModal.value = true;
 }
 
-function executeTargetPercentageChange(percentage: number) {
+function handleTargetAdjustConfirm(result: { value: number; percentage?: number }) {
   const i = item.value;
   if (!i) return;
-  const change = i.targetAmount * (percentage / 100);
-  const newTarget = Math.max(0, i.targetAmount + change);
-
-  previewCalculation.value = `$${i.targetAmount.toFixed(2)} ${percentage > 0 ? '+' : ''}${percentage}% = $${newTarget.toFixed(2)}`;
-  setTimeout(() => previewCalculation.value = '', 3000);
 
   upsert({
     id: i.id,
-    targetAmount: newTarget,
+    targetAmount: result.value,
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-  showTargetPercentageModal.value = false;
+  showTargetAdjustModal.value = false;
 }
 
-function applyCustomPercentageToTarget() {
-  const pct = Number(customPercentage.value ?? 0);
-  if (pct === 0) return;
-  pendingCustomPercentage.value = pct;
-  showCustomPercentageModal.value = true;
+// Current amount adjustments
+function openCurrentAdjustModal(initialValue: number, mode: 'percentage' | 'preset' = 'percentage') {
+  currentAdjustInitialValue.value = initialValue;
+  currentAdjustMode.value = mode;
+  showCurrentAdjustModal.value = true;
 }
 
-function confirmCustomPercentage() {
-  executeTargetPercentageChange(pendingCustomPercentage.value);
-  customPercentage.value = null;
-  showCustomPercentageModal.value = false;
-}
-
-// Current amount percentage adjustments
-function addPercentageOfCurrent(percentage: number) {
+function handleCurrentAdjustConfirm(result: { value: number; percentage?: number }) {
   const i = item.value;
   if (!i) return;
-  pendingCurrentPercentage.value = percentage;
-  if (percentage === 10) {
-    showAdd10CurrentModal.value = true;
-  } else if (percentage === 25) {
-    showAdd25CurrentModal.value = true;
-  } else {
-    showCurrentPercentageModal.value = true;
-  }
-}
-
-function executeCurrentPercentageChange(percentage: number) {
-  const i = item.value;
-  if (!i) return;
-  const increase = i.currentAmount * (percentage / 100);
-  const newCurrent = i.currentAmount + increase;
-
-  currentPreview.value = `$${i.currentAmount.toFixed(2)} + ${percentage}% = $${newCurrent.toFixed(2)}`;
-  setTimeout(() => currentPreview.value = '', 3000);
 
   upsert({
     id: i.id,
-    currentAmount: Math.max(0, newCurrent),
+    currentAmount: result.value,
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-  showCurrentPercentageModal.value = false;
-  showAdd10CurrentModal.value = false;
-  showAdd25CurrentModal.value = false;
+  showCurrentAdjustModal.value = false;
 }
 
-// Quick complete actions
-function completeGoal() {
-  showCompleteGoalModal.value = true;
+// Advanced tools - Multiply
+function openMultiplyModal(initialMultiplier?: number) {
+  multiplyInitialValue.value = initialMultiplier;
+  showMultiplyModal.value = true;
 }
 
-function executeCompleteGoal() {
+function handleMultiplyConfirm(result: { value: number; multiplier?: number }) {
   const i = item.value;
   if (!i) return;
-  currentPreview.value = `Complete goal: $${i.targetAmount.toFixed(2)}`;
-  setTimeout(() => currentPreview.value = '', 3000);
+
   upsert({
     id: i.id,
-    currentAmount: i.targetAmount,
+    targetAmount: result.value,
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-  showCompleteGoalModal.value = false;
+  showMultiplyModal.value = false;
 }
 
-function reachHalfway() {
-  showReachHalfwayModal.value = true;
+// Advanced tools - Interest
+function openInterestModal(initialPercentage?: number) {
+  interestInitialValue.value = initialPercentage;
+  showInterestModal.value = true;
 }
 
-function executeReachHalfway() {
+function handleInterestConfirm(result: { value: number; percentage?: number }) {
   const i = item.value;
   if (!i) return;
-  const halfway = i.targetAmount / 2;
-  currentPreview.value = `Reach halfway: $${halfway.toFixed(2)}`;
-  setTimeout(() => currentPreview.value = '', 3000);
-  upsert({
-    id: i.id,
-    currentAmount: halfway,
-  });
-  updated.value = true;
-  setTimeout(() => updated.value = false, 1000);
-  showReachHalfwayModal.value = false;
-}
 
-// Advanced tools
-function multiplyTarget(multiplier: number) {
-  const i = item.value;
-  if (!i) return;
-  pendingMultiplier.value = multiplier;
-  showMultiplyTargetModal.value = true;
-}
-
-function executeMultiplyTarget(multiplier: number) {
-  const i = item.value;
-  if (!i) return;
-  upsert({
-    id: i.id,
-    targetAmount: i.targetAmount * multiplier,
-  });
-  updated.value = true;
-  setTimeout(() => updated.value = false, 1000);
-  showMultiplyTargetModal.value = false;
-}
-
-function applyInterestToBoth(percentage: number) {
-  const i = item.value;
-  if (!i) return;
-  pendingInterestRate.value = percentage;
-  showApplyInterestModal.value = true;
-}
-
-function executeApplyInterest(percentage: number) {
-  const i = item.value;
-  if (!i) return;
-  const targetIncrease = i.targetAmount * (percentage / 100);
+  // Apply same percentage to current amount
+  const percentage = result.percentage ?? 0;
   const currentIncrease = i.currentAmount * (percentage / 100);
 
   upsert({
     id: i.id,
-    targetAmount: i.targetAmount + targetIncrease,
+    targetAmount: result.value,
     currentAmount: i.currentAmount + currentIncrease,
   });
   updated.value = true;
   setTimeout(() => updated.value = false, 1000);
-  showApplyInterestModal.value = false;
+  showInterestModal.value = false;
 }
 
 const typeLabel: Record<FinanceItem['type'], string> = {
@@ -328,13 +283,13 @@ const typeLabel: Record<FinanceItem['type'], string> = {
         <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100">Update amount</div>
         <div class="mb-4">
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
-            <button @click="completeGoal" class="cursor-pointer rounded-md bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 px-3 py-2 hover:bg-green-200 dark:hover:bg-green-800 text-sm font-medium">Complete Goal</button>
-            <button @click="reachHalfway" class="cursor-pointer rounded-md bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 px-3 py-2 hover:bg-blue-200 dark:hover:bg-blue-800 text-sm font-medium">Reach Halfway</button>
-            <button @click="addPercentageOfCurrent(50)" class="cursor-pointer rounded-md bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-2 hover:bg-amber-200 dark:hover:bg-amber-800 text-sm font-medium">Add 50% of Current</button>
-            <button @click="addPercentageOfCurrent(25)" class="cursor-pointer rounded-md bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-2 hover:bg-amber-200 dark:hover:bg-amber-800 text-sm font-medium">Add 25% of Current</button>
-            <button @click="addPercentageOfCurrent(10)" class="cursor-pointer rounded-md bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-2 hover:bg-amber-200 dark:hover:bg-amber-800 text-sm font-medium">Add 10% of Current</button>
+            <button @click="openCurrentAdjustModal(100, 'preset')" class="cursor-pointer rounded-md bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100 px-3 py-2 hover:bg-green-200 dark:hover:bg-green-800 text-sm font-medium">Complete Goal</button>
+            <button @click="openCurrentAdjustModal(50, 'preset')" class="cursor-pointer rounded-md bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 px-3 py-2 hover:bg-blue-200 dark:hover:bg-blue-800 text-sm font-medium">Reach Halfway</button>
+            <button @click="openCurrentAdjustModal(50, 'percentage')" class="cursor-pointer rounded-md bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-2 hover:bg-amber-200 dark:hover:bg-amber-800 text-sm font-medium">Add 50% of Current</button>
+            <button @click="openCurrentAdjustModal(25, 'percentage')" class="cursor-pointer rounded-md bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-2 hover:bg-amber-200 dark:hover:bg-amber-800 text-sm font-medium">Add 25% of Current</button>
+            <button @click="openCurrentAdjustModal(10, 'percentage')" class="cursor-pointer rounded-md bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 px-3 py-2 hover:bg-amber-200 dark:hover:bg-amber-800 text-sm font-medium">Add 10% of Current</button>
+            <button @click="openCurrentAdjustModal(undefined, 'percentage')" class="cursor-pointer rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 px-3 py-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-sm font-medium">Custom %</button>
           </div>
-          <div v-if="currentPreview" class="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 p-2 rounded">{{ currentPreview }}</div>
         </div>
         <div class="space-y-3">
           <div class="flex items-center gap-3">
@@ -372,19 +327,15 @@ const typeLabel: Record<FinanceItem['type'], string> = {
         <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100">Target Amount Adjustments</div>
         <p class="text-xs text-neutral-500 dark:text-neutral-400">Apply percentage adjustment to target amount (positive for interest/add, negative for subtract)</p>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <button @click="applyPercentageToTarget(-10)" class="cursor-pointer rounded-md bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-3 py-2 hover:bg-red-200 dark:hover:bg-red-800 text-sm font-medium">-10%</button>
-          <button @click="applyPercentageToTarget(-25)" class="cursor-pointer rounded-md bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-3 py-2 hover:bg-red-200 dark:hover:bg-red-800 text-sm font-medium">-25%</button>
-          <button @click="applyPercentageToTarget(-50)" class="cursor-pointer rounded-md bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-3 py-2 hover:bg-red-200 dark:hover:bg-red-800 text-sm font-medium">-50%</button>
-          <button @click="applyPercentageToTarget(10)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+10%</button>
-          <button @click="applyPercentageToTarget(25)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+25%</button>
-          <button @click="applyPercentageToTarget(50)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+50%</button>
-          <button @click="applyPercentageToTarget(100)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+100%</button>
+          <button @click="openTargetAdjustModal(-10)" class="cursor-pointer rounded-md bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-3 py-2 hover:bg-red-200 dark:hover:bg-red-800 text-sm font-medium">-10%</button>
+          <button @click="openTargetAdjustModal(-25)" class="cursor-pointer rounded-md bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-3 py-2 hover:bg-red-200 dark:hover:bg-red-800 text-sm font-medium">-25%</button>
+          <button @click="openTargetAdjustModal(-50)" class="cursor-pointer rounded-md bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 px-3 py-2 hover:bg-red-200 dark:hover:bg-red-800 text-sm font-medium">-50%</button>
+          <button @click="openTargetAdjustModal(10)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+10%</button>
+          <button @click="openTargetAdjustModal(25)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+25%</button>
+          <button @click="openTargetAdjustModal(50)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+50%</button>
+          <button @click="openTargetAdjustModal(100)" class="cursor-pointer rounded-md bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 px-3 py-2 hover:bg-purple-200 dark:hover:bg-purple-800 text-sm font-medium">+100%</button>
+          <button @click="openTargetAdjustModal()" class="cursor-pointer rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 px-3 py-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-sm font-medium">Custom %</button>
         </div>
-        <div class="flex items-center gap-2">
-          <input v-model.number="customPercentage" type="number" step="0.1" class="flex-1 rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 px-3 py-2 text-sm" placeholder="Custom % (negative to subtract)" />
-          <button @click="applyCustomPercentageToTarget" class="cursor-pointer rounded-md bg-purple-600 dark:bg-purple-500 text-white px-3 py-2 hover:bg-purple-700 dark:hover:bg-purple-600 text-sm">Apply to Target</button>
-        </div>
-        <div v-if="previewCalculation" class="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 p-2 rounded">{{ previewCalculation }}</div>
       </div>
 
       
@@ -392,17 +343,19 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       <div class="mt-6 rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4 shadow-sm">
   <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">Advanced Tools</div>
   <div class="pt-4 space-y-3">
-    <p class="text-xs text-neutral-500 dark:text-neutral-400">Apply changes to both target and current amounts proportionally</p>
+    <p class="text-xs text-neutral-500 dark:text-neutral-400">Multiply target amount by a factor</p>
     <div class="grid grid-cols-2 gap-2">
-      <button @click="multiplyTarget(2)" class="cursor-pointer rounded-md bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100 px-3 py-2 hover:bg-indigo-200 dark:hover:bg-indigo-800 text-sm font-medium">Double Target</button>
-      <button @click="multiplyTarget(0.5)" class="cursor-pointer rounded-md bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100 px-3 py-2 hover:bg-indigo-200 dark:hover:bg-indigo-800 text-sm font-medium">Halve Target</button>
+      <button @click="openMultiplyModal(2)" class="cursor-pointer rounded-md bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100 px-3 py-2 hover:bg-indigo-200 dark:hover:bg-indigo-800 text-sm font-medium">Double Target</button>
+      <button @click="openMultiplyModal(0.5)" class="cursor-pointer rounded-md bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100 px-3 py-2 hover:bg-indigo-200 dark:hover:bg-indigo-800 text-sm font-medium">Halve Target</button>
+      <button @click="openMultiplyModal()" class="cursor-pointer rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 px-3 py-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-sm font-medium col-span-2">Custom Multiplier</button>
     </div>
     <div class="border-t border-neutral-200 dark:border-neutral-700 pt-3">
       <div class="text-xs font-medium mb-2 text-neutral-700 dark:text-neutral-300">Apply Interest to Both</div>
       <div class="grid grid-cols-3 gap-2">
-        <button @click="applyInterestToBoth(10)" class="cursor-pointer rounded-md bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100 px-3 py-2 hover:bg-rose-200 dark:hover:bg-rose-800 text-sm font-medium">+10%</button>
-        <button @click="applyInterestToBoth(25)" class="cursor-pointer rounded-md bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100 px-3 py-2 hover:bg-rose-200 dark:hover:bg-rose-800 text-sm font-medium">+25%</button>
-        <button @click="applyInterestToBoth(50)" class="cursor-pointer rounded-md bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100 px-3 py-2 hover:bg-rose-200 dark:hover:bg-rose-800 text-sm font-medium">+50%</button>
+        <button @click="openInterestModal(10)" class="cursor-pointer rounded-md bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100 px-3 py-2 hover:bg-rose-200 dark:hover:bg-rose-800 text-sm font-medium">+10%</button>
+        <button @click="openInterestModal(25)" class="cursor-pointer rounded-md bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100 px-3 py-2 hover:bg-rose-200 dark:hover:bg-rose-800 text-sm font-medium">+25%</button>
+        <button @click="openInterestModal(50)" class="cursor-pointer rounded-md bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100 px-3 py-2 hover:bg-rose-200 dark:hover:bg-rose-800 text-sm font-medium">+50%</button>
+        <button @click="openInterestModal()" class="cursor-pointer rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 px-3 py-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-sm font-medium col-span-3">Custom %</button>
       </div>
       <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-2">Increases both target and current by the same percentage (compound interest)</p>
     </div>
@@ -424,70 +377,78 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       @cancel="showDeleteModal = false"
     />
 
-    <ConfirmModal
-      :is-open="showTargetPercentageModal"
-      variant="purple"
+    <!-- Percentage Modals -->
+    <PercentageModal
+      :is-open="showTargetAdjustModal"
       title="Adjust Target Amount"
-      :message="`This will ${pendingTargetPercentage > 0 ? 'increase' : 'decrease'} your target amount by ${Math.abs(pendingTargetPercentage)}%. Are you sure?`"
-      confirm-text="Confirm"
-      cancel-text="Cancel"
-      @confirm="executeTargetPercentageChange(pendingTargetPercentage)"
-      @cancel="showTargetPercentageModal = false"
+      operation-type="percentage"
+      :current-value="item?.targetAmount || 0"
+      :preset-options="targetAdjustPresets"
+      variant="mixed"
+      value-label="Current Target"
+      :allow-negative="true"
+      :initial-value="targetAdjustInitialValue"
+      @confirm="handleTargetAdjustConfirm"
+      @cancel="showTargetAdjustModal = false"
     />
 
-    <ConfirmModal
-      :is-open="showCustomPercentageModal"
-      variant="purple"
-      title="Adjust Target Amount"
-      :message="`This will ${pendingCustomPercentage > 0 ? 'increase' : 'decrease'} your target amount by ${Math.abs(pendingCustomPercentage)}%. Are you sure?`"
-      confirm-text="Confirm"
-      cancel-text="Cancel"
-      @confirm="confirmCustomPercentage"
-      @cancel="showCustomPercentageModal = false"
+    <PercentageModal
+      v-if="currentAdjustMode === 'percentage'"
+      :is-open="showCurrentAdjustModal"
+      title="Adjust Current Amount"
+      operation-type="percentage"
+      :current-value="item?.currentAmount || 0"
+      :preset-options="currentPercentagePresets"
+      variant="mixed"
+      value-label="Current Amount"
+      :allow-negative="true"
+      :initial-value="currentAdjustInitialValue"
+      @confirm="handleCurrentAdjustConfirm"
+      @cancel="showCurrentAdjustModal = false"
     />
 
-    <ConfirmModal
-      :is-open="showCurrentPercentageModal"
-      variant="amber"
-      title="Increase Current Amount"
-      :message="`This will increase your current amount by ${pendingCurrentPercentage}% of current ($${item ? (item.currentAmount * (pendingCurrentPercentage / 100)).toFixed(2) : '0'}). Are you sure?`"
-      confirm-text="Confirm"
-      cancel-text="Cancel"
-      @confirm="executeCurrentPercentageChange(pendingCurrentPercentage)"
-      @cancel="showCurrentPercentageModal = false"
+    <PercentageModal
+      v-if="currentAdjustMode === 'preset'"
+      :is-open="showCurrentAdjustModal"
+      title="Set Current Amount"
+      operation-type="preset"
+      :current-value="item?.targetAmount || 0"
+      :target-value="item?.targetAmount || 0"
+      :preset-options="currentPresetOptions"
+      variant="neutral"
+      value-label="Target Amount"
+      :allow-negative="false"
+      :initial-value="currentAdjustInitialValue"
+      @confirm="handleCurrentAdjustConfirm"
+      @cancel="showCurrentAdjustModal = false"
     />
 
-    <ConfirmModal
-      :is-open="showCompleteGoalModal"
-      variant="success"
-      title="Complete Goal"
-      message="Complete the goal? This will set current amount to target."
-      confirm-text="Complete"
-      cancel-text="Cancel"
-      @confirm="executeCompleteGoal"
-      @cancel="showCompleteGoalModal = false"
+    <PercentageModal
+      :is-open="showMultiplyModal"
+      title="Multiply Target Amount"
+      operation-type="multiply"
+      :current-value="item?.targetAmount || 0"
+      :preset-options="multiplyPresets"
+      variant="multiply"
+      value-label="Current Target"
+      :allow-negative="false"
+      :initial-value="multiplyInitialValue"
+      @confirm="handleMultiplyConfirm"
+      @cancel="showMultiplyModal = false"
     />
 
-    <ConfirmModal
-      :is-open="showMultiplyTargetModal"
-      variant="indigo"
-      title="Multiply Target"
-      :message="`This will ${pendingMultiplier > 1 ? 'increase' : 'decrease'} your target by ${(Math.abs(pendingMultiplier - 1) * 100).toFixed(0)}%. Are you sure?`"
-      confirm-text="Confirm"
-      cancel-text="Cancel"
-      @confirm="executeMultiplyTarget(pendingMultiplier)"
-      @cancel="showMultiplyTargetModal = false"
-    />
-
-    <ConfirmModal
-      :is-open="showApplyInterestModal"
-      variant="rose"
-      title="Apply Interest"
-      :message="`This will apply ${pendingInterestRate}% interest to both target and current amounts. Are you sure?`"
-      confirm-text="Apply"
-      cancel-text="Cancel"
-      @confirm="executeApplyInterest(pendingInterestRate)"
-      @cancel="showApplyInterestModal = false"
+    <PercentageModal
+      :is-open="showInterestModal"
+      title="Apply Interest to Both"
+      operation-type="percentage"
+      :current-value="item?.targetAmount || 0"
+      :preset-options="interestPresets"
+      variant="increase"
+      value-label="Target Amount"
+      :allow-negative="false"
+      :initial-value="interestInitialValue"
+      @confirm="handleInterestConfirm"
+      @cancel="showInterestModal = false"
     />
 
     <ConfirmModal
@@ -524,17 +485,6 @@ const typeLabel: Record<FinanceItem['type'], string> = {
     />
 
     <ConfirmModal
-      :is-open="showReachHalfwayModal"
-      variant="primary"
-      title="Reach Halfway Point"
-      :message="`Set current amount to halfway point (${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.targetAmount / 2) : '$0.00'})?`"
-      confirm-text="Reach Halfway"
-      cancel-text="Cancel"
-      @confirm="executeReachHalfway"
-      @cancel="showReachHalfwayModal = false"
-    />
-
-    <ConfirmModal
       :is-open="showSaveEditModal"
       variant="primary"
       title="Save Changes"
@@ -543,28 +493,6 @@ const typeLabel: Record<FinanceItem['type'], string> = {
       cancel-text="Cancel"
       @confirm="executeSaveEdit"
       @cancel="showSaveEditModal = false"
-    />
-
-    <ConfirmModal
-      :is-open="showAdd10CurrentModal"
-      variant="amber"
-      title="Add 10% of Current"
-      :message="`Add 10% of current amount (${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 0.10) : '$0.00'})? New amount will be ${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 1.10) : '$0.00'}.`"
-      confirm-text="Add"
-      cancel-text="Cancel"
-      @confirm="executeCurrentPercentageChange(10)"
-      @cancel="showAdd10CurrentModal = false"
-    />
-
-    <ConfirmModal
-      :is-open="showAdd25CurrentModal"
-      variant="amber"
-      title="Add 25% of Current"
-      :message="`Add 25% of current amount (${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 0.25) : '$0.00'})? New amount will be ${item ? Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount * 1.25) : '$0.00'}.`"
-      confirm-text="Add"
-      cancel-text="Cancel"
-      @confirm="executeCurrentPercentageChange(25)"
-      @cancel="showAdd25CurrentModal = false"
     />
   </div>
 </template>
