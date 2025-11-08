@@ -10,6 +10,11 @@ const { getById, upsert, remove } = useFinanceStore();
 
 const id = String(route.params.id ?? '');
 const item = computed(() => getById(id));
+const remainingAmount = computed(() => {
+  const i = item.value;
+  if (!i) return 0;
+  return Math.max(0, i.targetAmount - i.currentAmount);
+});
 
 const delta = ref<number | null>(null);
 
@@ -274,8 +279,13 @@ const typeLabel: Record<FinanceItem['type'], string> = {
         <div class="mt-3 h-4 w-full rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
           <div class="h-full transition-all duration-300" :class="pct(item) >= 100 ? 'bg-green-600 dark:bg-green-500' : 'bg-neutral-800 dark:bg-neutral-300'" :style="{ width: pct(item) + '%' }"></div>
         </div>
-        <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-          {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount) }} / {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.targetAmount) }}
+        <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+          <div>
+            {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.currentAmount) }} / {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.targetAmount) }}
+          </div>
+          <div class="rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 font-semibold text-neutral-700 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100">
+            {{ Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(remainingAmount) }} left
+          </div>
         </div>
        </div>
 
